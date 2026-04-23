@@ -1,0 +1,1159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Eyewa · Requisition Approval Tool</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=IBM+Plex+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #f5f2eb;
+    --surface: #ffffff;
+    --ink: #0f0e0a;
+    --mid: #6b6556;
+    --light: #e8e3d8;
+    --rule: #d4cfc4;
+    --accent: #c8441a;
+    --accent-light: #f5ede9;
+    --mono: 'IBM Plex Mono', monospace;
+    --serif: 'Playfair Display', Georgia, serif;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--mono);
+    min-height: 100vh;
+    padding: 0;
+  }
+
+  /* ── HEADER ── */
+  .header {
+    background: var(--ink);
+    color: var(--bg);
+    padding: 20px 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 3px solid var(--accent);
+  }
+  .header-brand {
+    font-family: var(--serif);
+    font-size: 22px;
+    font-weight: 900;
+    letter-spacing: -0.02em;
+  }
+  .header-brand span { color: var(--accent); }
+  .header-label {
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: rgba(245,242,235,0.5);
+  }
+
+  /* ── LAYOUT ── */
+  .main {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 56px 32px 80px;
+  }
+
+  .intro {
+    margin-bottom: 48px;
+    padding-bottom: 32px;
+    border-bottom: 1px solid var(--rule);
+  }
+  .intro-eyebrow {
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 12px;
+  }
+  .intro-title {
+    font-family: var(--serif);
+    font-size: clamp(28px, 4vw, 44px);
+    font-weight: 900;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    margin-bottom: 16px;
+    color: var(--ink);
+  }
+  .intro-body {
+    font-size: 12.5px;
+    color: var(--mid);
+    line-height: 1.8;
+    max-width: 560px;
+  }
+
+  /* ── STEPS BAR ── */
+  .steps {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    margin-bottom: 40px;
+  }
+  .step {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 11px;
+    letter-spacing: 0.05em;
+    color: var(--mid);
+    padding: 10px 0;
+    flex: 1;
+    border-bottom: 2px solid var(--rule);
+    transition: all 0.3s;
+  }
+  .step.active {
+    color: var(--ink);
+    border-bottom-color: var(--accent);
+  }
+  .step.done {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+  }
+  .step-num {
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    background: var(--light);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px;
+    font-weight: 500;
+    flex-shrink: 0;
+    transition: all 0.3s;
+  }
+  .step.active .step-num { background: var(--accent); color: white; }
+  .step.done .step-num { background: var(--accent); color: white; }
+
+  /* ── FORM SECTIONS ── */
+  .form-section {
+    display: none;
+    animation: fadeIn 0.35s ease;
+  }
+  .form-section.visible { display: block; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+  .section-title {
+    font-family: var(--serif);
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 6px;
+    letter-spacing: -0.01em;
+  }
+  .section-sub {
+    font-size: 11px;
+    color: var(--mid);
+    margin-bottom: 28px;
+    letter-spacing: 0.03em;
+    line-height: 1.6;
+  }
+
+  .field-group {
+    margin-bottom: 24px;
+  }
+  .field-label {
+    display: block;
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--mid);
+    margin-bottom: 8px;
+    font-weight: 500;
+  }
+  .field-hint {
+    font-size: 10px;
+    color: var(--mid);
+    margin-bottom: 8px;
+    font-style: italic;
+    opacity: 0.8;
+  }
+
+  input[type="text"], input[type="email"], select, textarea {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    padding: 12px 14px;
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--ink);
+    transition: border-color 0.2s, box-shadow 0.2s;
+    outline: none;
+    appearance: none;
+  }
+  input:focus, select:focus, textarea:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(200,68,26,0.08);
+  }
+  textarea { resize: vertical; min-height: 90px; line-height: 1.6; }
+
+  .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+  .radio-group { display: flex; flex-direction: column; gap: 8px; }
+  .radio-option {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px 14px;
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+  }
+  .radio-option:hover { border-color: var(--accent); background: var(--accent-light); }
+  .radio-option input { margin-top: 2px; accent-color: var(--accent); flex-shrink: 0; }
+  .radio-label { font-size: 12.5px; line-height: 1.5; }
+  .radio-label strong { display: block; font-weight: 500; }
+  .radio-label span { font-size: 11px; color: var(--mid); }
+
+  /* ── BUTTONS ── */
+  .btn-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 36px;
+    padding-top: 24px;
+    border-top: 1px solid var(--rule);
+  }
+  .btn {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 12px 28px;
+    border-radius: 3px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-weight: 500;
+  }
+  .btn-primary { background: var(--accent); color: white; }
+  .btn-primary:hover { background: #a83614; }
+  .btn-primary:disabled { background: var(--rule); color: var(--mid); cursor: not-allowed; }
+  .btn-ghost { background: transparent; color: var(--mid); border: 1px solid var(--rule); }
+  .btn-ghost:hover { border-color: var(--ink); color: var(--ink); }
+
+  /* ── LOADING STATE ── */
+  .loading-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(15,14,10,0.85);
+    z-index: 100;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+  }
+  .loading-overlay.visible { display: flex; }
+  .loading-text {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--bg);
+    letter-spacing: 0.1em;
+  }
+  .loading-steps {
+    font-size: 11px;
+    color: rgba(245,242,235,0.5);
+    letter-spacing: 0.05em;
+    text-align: center;
+    max-width: 320px;
+    line-height: 1.8;
+  }
+  .spinner {
+    width: 36px; height: 36px;
+    border: 2px solid rgba(245,242,235,0.2);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── OUTPUT SECTION ── */
+  #output-section {
+    display: none;
+    animation: fadeIn 0.4s ease;
+  }
+
+  .output-header {
+    margin-bottom: 32px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--rule);
+  }
+  .output-eyebrow {
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 8px;
+  }
+  .output-title {
+    font-family: var(--serif);
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    margin-bottom: 8px;
+  }
+  .output-meta {
+    font-size: 11px;
+    color: var(--mid);
+  }
+
+  /* ASSESSMENT CARD */
+  .assessment-card {
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    padding: 24px 28px;
+    margin-bottom: 24px;
+  }
+  .assessment-title {
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--mid);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .assessment-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--rule);
+  }
+  .verdict-banner {
+    padding: 14px 18px;
+    border-radius: 4px;
+    font-size: 13px;
+    font-weight: 500;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    line-height: 1.5;
+  }
+  .verdict-approve { background: #e8f5e9; color: #1b5e20; border-left: 3px solid #2e7d32; }
+  .verdict-conditional { background: #fff8e1; color: #5f4100; border-left: 3px solid #f59f00; }
+  .verdict-challenge { background: #fce4ec; color: #880e35; border-left: 3px solid #c62828; }
+
+  .assessment-body {
+    font-size: 12.5px;
+    line-height: 1.85;
+    color: var(--ink);
+    white-space: pre-wrap;
+  }
+
+  /* EMAIL CARD */
+  .email-card {
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    overflow: hidden;
+    margin-bottom: 24px;
+  }
+  .email-header-bar {
+    background: var(--ink);
+    padding: 14px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .email-header-bar span {
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: rgba(245,242,235,0.6);
+  }
+  .email-header-bar .email-title-label {
+    color: var(--bg);
+    font-weight: 500;
+  }
+  .email-fields {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--rule);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .email-field {
+    display: flex;
+    gap: 12px;
+    font-size: 11.5px;
+  }
+  .email-field-label { color: var(--mid); min-width: 60px; }
+  .email-field-value { color: var(--ink); font-weight: 500; }
+  .email-body-area {
+    padding: 20px;
+    font-size: 13px;
+    line-height: 1.85;
+    color: var(--ink);
+    white-space: pre-wrap;
+    min-height: 200px;
+  }
+
+  .action-row {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .btn-copy {
+    background: var(--ink);
+    color: var(--bg);
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 12px 24px;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: background 0.2s;
+    font-weight: 500;
+  }
+  .btn-copy:hover { background: #333; }
+  .btn-restart {
+    background: transparent;
+    color: var(--mid);
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 12px 24px;
+    border: 1px solid var(--rule);
+    border-radius: 3px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-weight: 500;
+  }
+  .btn-restart:hover { border-color: var(--ink); color: var(--ink); }
+
+  .copy-confirm {
+    font-size: 11px;
+    color: #2e7d32;
+    opacity: 0;
+    transition: opacity 0.3s;
+    align-self: center;
+  }
+  .copy-confirm.show { opacity: 1; }
+
+  .fixed-recipients {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 14px;
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+  }
+  .fixed-pill {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--light);
+    border: 1px solid var(--rule);
+    border-radius: 20px;
+    padding: 5px 12px 5px 8px;
+    font-size: 11px;
+  }
+  .fixed-pill-ta { background: var(--accent-light); border-color: rgba(200,68,26,0.2); }
+  .fixed-pill-role {
+    background: var(--ink);
+    color: var(--bg);
+    font-size: 9px;
+    letter-spacing: 0.08em;
+    padding: 2px 6px;
+    border-radius: 10px;
+    font-weight: 500;
+  }
+  .fixed-pill-ta .fixed-pill-role { background: var(--accent); }
+  .fixed-pill-name { color: var(--ink); font-weight: 500; }
+
+  .btn-send {
+    background: var(--accent);
+    color: white;
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 14px 28px;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: background 0.2s;
+    font-weight: 500;
+  }
+  .btn-send:hover { background: #a83614; }
+
+  .mailto-note {
+    font-size: 11px;
+    color: var(--mid);
+    margin-top: 12px;
+    font-style: italic;
+    line-height: 1.6;
+  }
+
+  #cxo-field-wrap { transition: opacity 0.2s; }
+
+  /* ── REQUIRED STAR ── */
+  .req { color: var(--accent); margin-left: 2px; }
+    .header { padding: 16px 20px; }
+    .main { padding: 32px 20px 60px; }
+    .row-2 { grid-template-columns: 1fr; }
+    .steps { gap: 4px; }
+    .step-label { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-brand">Eyewa<span>.</span></div>
+  <div class="header-label">Requisition Approval Tool</div>
+</div>
+
+<div class="main">
+
+  <div class="intro">
+    <div class="intro-eyebrow">TA Operations · Internal Tool</div>
+    <div class="intro-title">New Hire<br>Justification</div>
+    <p class="intro-body">Before TA begins working a role, a business case must be approved by your department head and one of the three CEOs. This tool guides you through the justification, pressure-tests your reasoning, and drafts the approval email for you.</p>
+  </div>
+
+  <!-- STEPS -->
+  <div class="steps">
+    <div class="step active" id="step-1">
+      <div class="step-num">1</div>
+      <span class="step-label">Role basics</span>
+    </div>
+    <div class="step" id="step-2">
+      <div class="step-num">2</div>
+      <span class="step-label">Business case</span>
+    </div>
+    <div class="step" id="step-3">
+      <div class="step-num">3</div>
+      <span class="step-label">Alternatives</span>
+    </div>
+    <div class="step" id="step-4">
+      <div class="step-num">4</div>
+      <span class="step-label">Approvers</span>
+    </div>
+  </div>
+
+  <!-- ── SECTION 1: ROLE BASICS ── -->
+  <div class="form-section visible" id="section-1">
+    <div class="section-title">The Role</div>
+    <p class="section-sub">Basic details about the position you want to open.</p>
+
+    <div class="row-2">
+      <div class="field-group">
+        <label class="field-label">Your Name <span class="req">*</span></label>
+        <input type="text" id="hm-name" placeholder="e.g. Sarah Al Hajj">
+      </div>
+      <div class="field-group">
+        <label class="field-label">Your Department <span class="req">*</span></label>
+        <input type="text" id="hm-dept" placeholder="e.g. Retail Operations">
+      </div>
+    </div>
+
+    <div class="row-2">
+      <div class="field-group">
+        <label class="field-label">Role Title <span class="req">*</span></label>
+        <input type="text" id="role-title" placeholder="e.g. Senior Buyer – Sunglasses">
+      </div>
+      <div class="field-group">
+        <label class="field-label">Seniority Level <span class="req">*</span></label>
+        <select id="role-level">
+          <option value="">Select level</option>
+          <option>Individual Contributor (Junior)</option>
+          <option>Individual Contributor (Mid)</option>
+          <option>Individual Contributor (Senior)</option>
+          <option>Team Lead / Supervisor</option>
+          <option>Manager</option>
+          <option>Senior Manager / Head of</option>
+          <option>Director</option>
+          <option>VP / C-Suite</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="row-2">
+      <div class="field-group">
+        <label class="field-label">Type of Hire <span class="req">*</span></label>
+        <select id="hire-type">
+          <option value="">Select type</option>
+          <option>Backfill — replacing someone who left</option>
+          <option>New headcount — additional person</option>
+          <option>New headcount — new function / capability</option>
+          <option>Contract / temp to start</option>
+        </select>
+      </div>
+      <div class="field-group">
+        <label class="field-label">Target Start Date <span class="req">*</span></label>
+        <input type="text" id="start-date" placeholder="e.g. 1 September 2025">
+      </div>
+    </div>
+
+    <div class="field-group">
+      <label class="field-label">Approximate Salary Range (AED / month)</label>
+      <input type="text" id="salary" placeholder="e.g. AED 18,000 – 22,000">
+    </div>
+
+    <div class="btn-row">
+      <div></div>
+      <button class="btn btn-primary" onclick="goToSection(2)">Next →</button>
+    </div>
+  </div>
+
+  <!-- ── SECTION 2: BUSINESS CASE ── -->
+  <div class="form-section" id="section-2">
+    <div class="section-title">The Business Case</div>
+    <p class="section-sub">This is where most requests fall down. Be specific. Vague answers will get challenged.</p>
+
+    <div class="field-group">
+      <label class="field-label">Why does Eyewa need this role? <span class="req">*</span></label>
+      <div class="field-hint">What problem does it solve, or what opportunity does it unlock?</div>
+      <textarea id="why-role" placeholder="e.g. We are opening 4 new stores in KSA in Q4. The existing team of 2 area managers covers 12 stores and cannot absorb another 4 without a dedicated hire. Without this role, we will either miss the opening timeline or burn out the current team."></textarea>
+    </div>
+
+    <div class="field-group">
+      <label class="field-label">What happens if we don't hire? <span class="req">*</span></label>
+      <div class="field-hint">Be specific — revenue at risk, projects delayed, team capacity, compliance gaps.</div>
+      <textarea id="cost-of-not" placeholder="e.g. KSA store openings slip by 6–8 weeks costing ~AED 2M in lost first-month revenue. Or: The current buyer is managing 180 SKUs; without support we expect 2–3 key range gaps going into peak season."></textarea>
+    </div>
+
+    <div class="field-group">
+      <label class="field-label">Why now? <span class="req">*</span></label>
+      <div class="field-hint">What makes this the right moment — not 3 months ago, not in 6 months?</div>
+      <textarea id="why-now" placeholder="e.g. Budget is approved for H2. The store pipeline is confirmed. Recruiting now gives us 8 weeks to hire and 4 weeks to onboard before the October launch."></textarea>
+    </div>
+
+    <div class="field-group">
+      <label class="field-label">How does this role connect to a business goal or OKR?</label>
+      <textarea id="okr-link" placeholder="e.g. Supports OKR: Expand GCC retail footprint to 60 stores by end of 2025."></textarea>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-ghost" onclick="goToSection(1)">← Back</button>
+      <button class="btn btn-primary" onclick="goToSection(3)">Next →</button>
+    </div>
+  </div>
+
+  <!-- ── SECTION 3: ALTERNATIVES ── -->
+  <div class="form-section" id="section-3">
+    <div class="section-title">Alternatives Considered</div>
+    <p class="section-sub">Leadership will ask. Get ahead of it now.</p>
+
+    <div class="field-group">
+      <label class="field-label">Could an internal transfer or promotion cover this? <span class="req">*</span></label>
+      <div class="radio-group">
+        <label class="radio-option">
+          <input type="radio" name="internal" value="yes-explored">
+          <div class="radio-label"><strong>Yes — explored and not viable</strong><span>Explain why below</span></div>
+        </label>
+        <label class="radio-option">
+          <input type="radio" name="internal" value="no-nobody">
+          <div class="radio-label"><strong>No internal candidate exists</strong><span>This is a skills gap we don't have internally</span></div>
+        </label>
+        <label class="radio-option">
+          <input type="radio" name="internal" value="not-considered">
+          <div class="radio-label"><strong>Not yet considered</strong><span>I should check before submitting</span></div>
+        </label>
+      </div>
+    </div>
+
+    <div class="field-group">
+      <label class="field-label">Could a contractor / freelancer be used instead?</label>
+      <div class="radio-group">
+        <label class="radio-option">
+          <input type="radio" name="contractor" value="yes-better">
+          <div class="radio-label"><strong>Actually — yes, a contractor may work</strong><span>I'll revisit the request type</span></div>
+        </label>
+        <label class="radio-option">
+          <input type="radio" name="contractor" value="no-perm-needed">
+          <div class="radio-label"><strong>No — this needs a permanent hire</strong><span>Ongoing work, institutional knowledge required</span></div>
+        </label>
+        <label class="radio-option">
+          <input type="radio" name="contractor" value="temp-to-perm">
+          <div class="radio-label"><strong>Open to contract-to-hire initially</strong><span>De-risk the hire before committing</span></div>
+        </label>
+      </div>
+    </div>
+
+    <div class="field-group">
+      <label class="field-label">Could existing workload be redistributed across the team?</label>
+      <div class="radio-group">
+        <label class="radio-option">
+          <input type="radio" name="redistribute" value="no-capacity">
+          <div class="radio-label"><strong>No — team is at capacity</strong><span>Adding more would affect quality or retention</span></div>
+        </label>
+        <label class="radio-option">
+          <input type="radio" name="redistribute" value="partial">
+          <div class="radio-label"><strong>Partially — but not sustainable</strong><span>Short-term cover only, not a real solution</span></div>
+        </label>
+        <label class="radio-option">
+          <input type="radio" name="redistribute" value="not-explored">
+          <div class="radio-label"><strong>Haven't fully explored this</strong></div>
+        </label>
+      </div>
+    </div>
+
+    <div class="field-group">
+      <label class="field-label">Any other context on alternatives? <span class="field-hint" style="display:inline">(optional)</span></label>
+      <textarea id="alternatives-notes" placeholder="Anything else leadership should know about your thinking here..."></textarea>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-ghost" onclick="goToSection(2)">← Back</button>
+      <button class="btn btn-primary" onclick="goToSection(4)">Next →</button>
+    </div>
+  </div>
+
+  <!-- ── SECTION 4: APPROVERS ── -->
+  <div class="form-section" id="section-4">
+    <div class="section-title">Approval Routing</div>
+    <p class="section-sub">Fixed recipients are pre-set. You only need to add the relevant CXO — and your own email to send from.</p>
+
+    <!-- FIXED RECIPIENTS DISPLAY -->
+    <div class="field-group">
+      <label class="field-label">Fixed Recipients (always included)</label>
+      <div class="fixed-recipients">
+        <div class="fixed-pill">
+          <span class="fixed-pill-role">CEO</span>
+          <span class="fixed-pill-name">Anass Boumediene</span>
+        </div>
+        <div class="fixed-pill">
+          <span class="fixed-pill-role">CEO</span>
+          <span class="fixed-pill-name">Mehdi Oudghiri</span>
+        </div>
+        <div class="fixed-pill">
+          <span class="fixed-pill-role">CEO</span>
+          <span class="fixed-pill-name">Abdullah AlRugaib</span>
+        </div>
+        <div class="fixed-pill fixed-pill-ta">
+          <span class="fixed-pill-role">TA</span>
+          <span class="fixed-pill-name">Humairaa Patel (CC)</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- CXO TOGGLE -->
+    <div class="field-group">
+      <label class="field-label">Is this request coming from a CXO directly?</label>
+      <div class="radio-group" style="flex-direction:row;gap:10px;">
+        <label class="radio-option" style="flex:1">
+          <input type="radio" name="cxo-source" value="no" checked onchange="toggleCxoField(false)">
+          <div class="radio-label"><strong>No</strong><span>Add the relevant CXO below</span></div>
+        </label>
+        <label class="radio-option" style="flex:1">
+          <input type="radio" name="cxo-source" value="yes" onchange="toggleCxoField(true)">
+          <div class="radio-label"><strong>Yes</strong><span>Skip CXO — goes direct to CEOs</span></div>
+        </label>
+      </div>
+    </div>
+
+    <div id="cxo-field-wrap" class="field-group">
+      <label class="field-label">Relevant CXO / Department Head <span class="req">*</span></label>
+      <div class="field-hint">Name and title — they'll be included in the To field</div>
+      <input type="text" id="cxo-name" placeholder="e.g. Rami Dandan (Chief Commercial Officer)">
+    </div>
+
+    <div class="field-group">
+      <label class="field-label">CXO Email Address <span class="req">*</span></label>
+      <div class="field-hint" id="cxo-email-hint">Required to send the email directly</div>
+      <input type="email" id="cxo-email" placeholder="e.g. rami@eyewa.com">
+    </div>
+
+    <!-- SENDER EMAIL -->
+    <div class="field-group">
+      <label class="field-label">Your Email Address <span class="req">*</span></label>
+      <div class="field-hint">So the email opens from your mailbox</div>
+      <input type="email" id="sender-email" placeholder="e.g. humairaa.patel@eyewa.com" value="humairaa.patel@eyewa.com">
+    </div>
+
+    <div class="field-group">
+      <label class="field-label">Anything else approvers should know?</label>
+      <textarea id="extra-notes" placeholder="e.g. This was discussed with the COO informally last week. Budget is confirmed under cost centre 4201."></textarea>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-ghost" onclick="goToSection(3)">← Back</button>
+      <button class="btn btn-primary" id="generate-btn" onclick="generateOutput()">Generate Approval Brief →</button>
+    </div>
+  </div>
+
+  <!-- ── OUTPUT ── -->
+  <div id="output-section">
+
+    <div class="output-header">
+      <div class="output-eyebrow">Analysis Complete</div>
+      <div class="output-title">Your Approval Brief</div>
+      <div class="output-meta">Review Claude's assessment, then send the email directly below.</div>
+    </div>
+
+    <!-- ASSESSMENT -->
+    <div class="assessment-card">
+      <div class="assessment-title">Claude's Assessment</div>
+      <div id="verdict-banner" class="verdict-banner verdict-conditional">
+        <span id="verdict-icon">⏳</span>
+        <span id="verdict-text">Analysing...</span>
+      </div>
+      <div id="assessment-body" class="assessment-body"></div>
+    </div>
+
+    <!-- EMAIL -->
+    <div class="email-card">
+      <div class="email-header-bar">
+        <span class="email-title-label">Approval Request Email</span>
+        <span>Ready to send</span>
+      </div>
+      <div class="email-fields">
+        <div class="email-field"><span class="email-field-label">To:</span><span class="email-field-value" id="email-to"></span></div>
+        <div class="email-field"><span class="email-field-label">CC:</span><span class="email-field-value" id="email-cc"></span></div>
+        <div class="email-field"><span class="email-field-label">Subject:</span><span class="email-field-value" id="email-subject"></span></div>
+      </div>
+      <div class="email-body-area" id="email-body"></div>
+    </div>
+
+    <div class="action-row">
+      <button class="btn-send" id="btn-send-mail" onclick="openInMail()">✉ Open in Mail & Send</button>
+      <button class="btn-copy" onclick="copyEmail()">Copy Email</button>
+      <button class="btn-restart" onclick="restart()">Start New Request</button>
+      <span class="copy-confirm" id="copy-confirm">✓ Copied to clipboard</span>
+    </div>
+    <p class="mailto-note">Clicking "Open in Mail" will open your default email client with To, CC, Subject and body pre-filled — ready to review and send.</p>
+
+  </div>
+
+</div><!-- /main -->
+
+<!-- LOADING OVERLAY -->
+<div class="loading-overlay" id="loading">
+  <div class="spinner"></div>
+  <div class="loading-text">Reviewing your business case...</div>
+  <div class="loading-steps">
+    Claude is pressure-testing your justification,<br>
+    checking alternatives, and drafting your approval email.
+  </div>
+</div>
+
+<script>
+  let currentSection = 1;
+  const totalSections = 4;
+
+  function goToSection(n) {
+    // Basic validation for section 1
+    if (currentSection === 1 && n === 2) {
+      const required = ['hm-name','hm-dept','role-title','role-level','hire-type','start-date'];
+      for (const id of required) {
+        if (!document.getElementById(id).value.trim()) {
+          document.getElementById(id).focus();
+          document.getElementById(id).style.borderColor = 'var(--accent)';
+          setTimeout(() => document.getElementById(id).style.borderColor = '', 2000);
+          return;
+        }
+      }
+    }
+    if (currentSection === 2 && n === 3) {
+      const required = ['why-role','cost-of-not','why-now'];
+      for (const id of required) {
+        if (!document.getElementById(id).value.trim()) {
+          document.getElementById(id).focus();
+          return;
+        }
+      }
+    }
+    if (currentSection === 4 && n === 3) { /* allow back */ }
+
+    document.getElementById(`section-${currentSection}`).classList.remove('visible');
+    document.getElementById(`step-${currentSection}`).classList.remove('active');
+    document.getElementById(`step-${currentSection}`).classList.add('done');
+
+    currentSection = n;
+    document.getElementById(`section-${n}`).classList.add('visible');
+    document.getElementById(`step-${n}`).classList.remove('done');
+    document.getElementById(`step-${n}`).classList.add('active');
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  // Fixed recipients — hardcoded
+  const FIXED_CEOs = ['Anass Boumediene', 'Mehdi Oudghiri', 'Abdullah AlRugaib'];
+  const FIXED_CEO_EMAILS = ['anass@eyewa.com', 'mehdi@eyewa.com', 'abdullah@eyewa.com'];
+  const TA_NAME = 'Humairaa';
+  const TA_EMAIL = 'humairaa.patel@eyewa.com';
+
+  function toggleCxoField(fromCxo) {
+    const wrap = document.getElementById('cxo-field-wrap');
+    const emailHint = document.getElementById('cxo-email-hint');
+    if (fromCxo) {
+      wrap.style.opacity = '0.4';
+      wrap.style.pointerEvents = 'none';
+      document.getElementById('cxo-name').value = '';
+      emailHint.textContent = 'Enter CEO email addresses to send directly';
+    } else {
+      wrap.style.opacity = '1';
+      wrap.style.pointerEvents = 'auto';
+      emailHint.textContent = 'Required to send the email directly';
+    }
+  }
+
+  function collectData() {
+    const fromCxo = document.querySelector('input[name="cxo-source"]:checked')?.value === 'yes';
+    return {
+      hmName: document.getElementById('hm-name').value.trim(),
+      hmDept: document.getElementById('hm-dept').value.trim(),
+      roleTitle: document.getElementById('role-title').value.trim(),
+      roleLevel: document.getElementById('role-level').value,
+      hireType: document.getElementById('hire-type').value,
+      startDate: document.getElementById('start-date').value.trim(),
+      salary: document.getElementById('salary').value.trim(),
+      whyRole: document.getElementById('why-role').value.trim(),
+      costOfNot: document.getElementById('cost-of-not').value.trim(),
+      whyNow: document.getElementById('why-now').value.trim(),
+      okrLink: document.getElementById('okr-link').value.trim(),
+      internalOption: document.querySelector('input[name="internal"]:checked')?.value || 'not answered',
+      contractorOption: document.querySelector('input[name="contractor"]:checked')?.value || 'not answered',
+      redistributeOption: document.querySelector('input[name="redistribute"]:checked')?.value || 'not answered',
+      alternativesNotes: document.getElementById('alternatives-notes').value.trim(),
+      cxoName: fromCxo ? '' : document.getElementById('cxo-name').value.trim(),
+      cxoEmail: document.getElementById('cxo-email').value.trim(),
+      senderEmail: document.getElementById('sender-email').value.trim(),
+      fromCxo,
+      extraNotes: document.getElementById('extra-notes').value.trim(),
+    };
+  }
+
+  async function generateOutput() {
+    const d = collectData();
+    if (!d.fromCxo && !d.cxoName) {
+      alert('Please enter the CXO / department head name.');
+      document.getElementById('cxo-name').focus();
+      return;
+    }
+    if (!d.cxoEmail) {
+      alert('Please enter the CXO email address so the email can be sent.');
+      document.getElementById('cxo-email').focus();
+      return;
+    }
+    if (!d.senderEmail) {
+      alert('Please enter your email address.');
+      document.getElementById('sender-email').focus();
+      return;
+    }
+
+    document.getElementById('loading').classList.add('visible');
+
+    const toNames = d.fromCxo
+      ? FIXED_CEOs.join(', ')
+      : `${d.cxoName}, ${FIXED_CEOs.join(', ')}`;
+
+    const ccNames = `${TA_NAME} (TA)`;
+
+    const internalMap = {
+      'yes-explored': 'Yes — explored and ruled out',
+      'no-nobody': 'No internal candidate exists',
+      'not-considered': 'Not yet considered',
+      'not answered': 'Not answered'
+    };
+    const contractorMap = {
+      'yes-better': 'A contractor may work — revisiting',
+      'no-perm-needed': 'No — permanent hire required',
+      'temp-to-perm': 'Open to contract-to-hire initially',
+      'not answered': 'Not answered'
+    };
+    const redistributeMap = {
+      'no-capacity': 'No — team at capacity',
+      'partial': 'Partial cover only, not sustainable',
+      'not-explored': 'Not fully explored',
+      'not answered': 'Not answered'
+    };
+
+    const prompt = `You are an experienced Head of Talent Acquisition at Eyewa, a fast-growing GCC eyewear retailer. A hiring manager has submitted a headcount request. Respond with two clearly labelled sections exactly as shown.
+
+SUBMISSION:
+- Role: ${d.roleTitle} (${d.roleLevel})
+- Department: ${d.hmDept}
+- Submitted by: ${d.hmName}
+- Hire type: ${d.hireType}
+- Target start: ${d.startDate}
+- Salary range: ${d.salary || 'Not provided'}
+- Why this role: ${d.whyRole}
+- Cost of not hiring: ${d.costOfNot}
+- Why now: ${d.whyNow}
+- OKR/goal link: ${d.okrLink || 'Not provided'}
+- Internal transfer considered: ${internalMap[d.internalOption]}
+- Contractor option: ${contractorMap[d.contractorOption]}
+- Workload redistribution: ${redistributeMap[d.redistributeOption]}
+- Additional notes: ${d.alternativesNotes || 'None'}
+- Approvers: ${toNames}
+- TA CC: ${ccNames}
+- Extra context: ${d.extraNotes || 'None'}
+
+---
+
+Respond using EXACTLY this structure (do not add anything before ASSESSMENT_START):
+
+ASSESSMENT_START
+VERDICT: STRONG CASE
+[Your honest 3-5 paragraph assessment of the business case strength, alternatives quality, red flags, and suggestions]
+ASSESSMENT_END
+
+EMAIL_START
+To: ${toNames}
+CC: ${ccNames}
+Subject: Headcount Approval Request — ${d.roleTitle} | ${d.hmDept}
+
+[Email body here — professional, direct, concise. Open with exactly what is being requested. Summarise the case in 2-3 sentences. Cover the top alternatives considered. State cost of not approving. End with clear call to action: reply to approve or flag questions. Sign off as ${d.hmName}, ${d.hmDept}.]
+EMAIL_END
+
+Use VERDICT: STRONG CASE, VERDICT: CONDITIONAL APPROVAL, or VERDICT: NEEDS MORE WORK based on the quality of the submission.`;
+
+    try {
+      const response = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: "claude-sonnet-4-20250514",
+          max_tokens: 2000,
+          messages: [{ role: "user", content: prompt }]
+        })
+      });
+
+      const data = await response.json();
+
+      // Debug: log the raw response to console
+      console.log('API response:', JSON.stringify(data));
+
+      if (data.error) throw new Error('API error: ' + data.error.message);
+      const text = data.content.map(b => b.text || '').join('');
+      console.log('Raw text:', text);
+
+      // Fault-tolerant parsing — try markers first, fall back to splitting on known keywords
+      let assessmentRaw = '', emailRaw = '';
+
+      const assessmentMatch = text.match(/ASSESSMENT_START([\s\S]*?)ASSESSMENT_END/i);
+      const emailMatch = text.match(/EMAIL_START([\s\S]*?)EMAIL_END/i);
+
+      if (assessmentMatch && emailMatch) {
+        assessmentRaw = assessmentMatch[1].trim();
+        emailRaw = emailMatch[1].trim();
+      } else {
+        // Fallback: split on EMAIL_START if present
+        const emailSplit = text.split(/EMAIL_START/i);
+        if (emailSplit.length >= 2) {
+          assessmentRaw = emailSplit[0].replace(/ASSESSMENT_START/i, '').replace(/ASSESSMENT_END/i, '').trim();
+          emailRaw = emailSplit[1].replace(/EMAIL_END/i, '').trim();
+        } else {
+          // Last resort: put everything in assessment, show a notice
+          assessmentRaw = text.trim();
+          emailRaw = `To: ${d.cxoName}, ${d.ceoName}\nCC: ${d.taName}\nSubject: Headcount Approval Request — ${d.roleTitle} | ${d.hmDept}\n\n[Claude did not return a formatted email. Please use the assessment above to draft manually.]`;
+        }
+      }
+
+      // Extract verdict from assessment text
+      let verdict = 'conditional';
+      let verdictText = 'Conditional Approval Recommended';
+      let verdictIcon = '⚠️';
+      if (assessmentRaw.includes('VERDICT: STRONG CASE')) {
+        verdict = 'approve';
+        verdictText = 'Strong Case — Recommended for Approval';
+        verdictIcon = '✅';
+      } else if (assessmentRaw.includes('VERDICT: NEEDS MORE WORK')) {
+        verdict = 'challenge';
+        verdictText = 'Case Needs Strengthening Before Sending';
+        verdictIcon = '🔴';
+      }
+
+      const assessmentBody = assessmentRaw.replace(/VERDICT:.*\n?/, '').trim();
+
+      // Parse email parts
+      const emailLines = emailRaw.split('\n');
+      let toLine = '', ccLine = '', subjectLine = '', bodyLines = [];
+      let inBody = false;
+      for (const line of emailLines) {
+        if (line.startsWith('To:')) { toLine = line.replace('To:', '').trim(); }
+        else if (line.startsWith('CC:') || line.startsWith('Cc:')) { ccLine = line.replace(/CC:|Cc:/, '').trim(); }
+        else if (line.startsWith('Subject:')) { subjectLine = line.replace('Subject:', '').trim(); }
+        else if (toLine && subjectLine && !inBody && line.trim() === '') { inBody = true; }
+        else if (inBody || (toLine && subjectLine && !line.startsWith('To:') && !line.startsWith('CC:') && !line.startsWith('Subject:'))) {
+          if (!inBody && line.trim()) inBody = true;
+          if (inBody) bodyLines.push(line);
+        }
+      }
+
+      // Render
+      document.getElementById('verdict-banner').className = `verdict-banner verdict-${verdict}`;
+      document.getElementById('verdict-icon').textContent = verdictIcon;
+      document.getElementById('verdict-text').textContent = verdictText;
+      document.getElementById('assessment-body').textContent = assessmentBody;
+
+      document.getElementById('email-to').textContent = toNames;
+      document.getElementById('email-cc').textContent = `${TA_NAME} (TA)`;
+      document.getElementById('email-subject').textContent = subjectLine;
+      document.getElementById('email-body').textContent = bodyLines.join('\n').trim();
+
+      // Store for mailto
+      window._emailData = {
+        toEmails: d.fromCxo
+          ? FIXED_CEO_EMAILS.join(',')
+          : [d.cxoEmail, ...FIXED_CEO_EMAILS].join(','),
+        ccEmail: TA_EMAIL,
+        subject: subjectLine,
+        body: bodyLines.join('\n').trim(),
+      };
+
+      // Show output
+      document.getElementById('loading').classList.remove('visible');
+      document.querySelectorAll('.form-section').forEach(s => s.classList.remove('visible'));
+      document.getElementById('output-section').style.display = 'block';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    } catch (err) {
+      document.getElementById('loading').classList.remove('visible');
+      console.error('Full error:', err);
+      alert('Something went wrong: ' + err.message + '\n\nCheck the browser console (F12) for details.');
+    }
+  }
+
+  function openInMail() {
+    if (!window._emailData) return;
+    const { toEmails, ccEmail, subject, body } = window._emailData;
+    const mailto = `mailto:${encodeURIComponent(toEmails)}?cc=${encodeURIComponent(ccEmail)}&subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    window.location.href = mailto;
+  }
+
+  function copyEmail() {
+    const to = document.getElementById('email-to').textContent;
+    const cc = document.getElementById('email-cc').textContent;
+    const subject = document.getElementById('email-subject').textContent;
+    const body = document.getElementById('email-body').textContent;
+    const full = `To: ${to}\nCC: ${cc}\nSubject: ${subject}\n\n${body}`;
+    navigator.clipboard.writeText(full).then(() => {
+      const el = document.getElementById('copy-confirm');
+      el.classList.add('show');
+      setTimeout(() => el.classList.remove('show'), 2500);
+    });
+  }
+
+  function restart() {
+    document.getElementById('output-section').style.display = 'none';
+    document.querySelectorAll('input[type="text"], input[type="email"], textarea, select').forEach(el => el.value = '');
+    document.querySelectorAll('input[type="radio"]').forEach(el => el.checked = false);
+    currentSection = 1;
+    document.querySelectorAll('.step').forEach((s, i) => {
+      s.classList.remove('active', 'done');
+      if (i === 0) s.classList.add('active');
+    });
+    document.getElementById('section-1').classList.add('visible');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+</script>
+
+</body>
+</html>
